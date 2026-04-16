@@ -5,7 +5,7 @@
 #include <libxml/tree.h>
 #include <libxml/xmlschemastypes.h>
 
-// ==================== STRUCT ====================
+// STRUCT 
 struct Passenger {
     char ticket_id[8];
     char timestamp[20];
@@ -19,7 +19,8 @@ struct Passenger {
     char passenger_name[101];
 };
 
-// ==================== FIRST CHAR HEX ====================
+// FIRST CHAR HEX 
+// UTF 8 first char how much byte calculation
 void getFirstCharHex(const char *str, char *hexOut) {
     unsigned char *s = (unsigned char *)str;
     if (s[0] == 0) {
@@ -35,20 +36,29 @@ void getFirstCharHex(const char *str, char *hexOut) {
     }
 }
 
-// ==================== CSV TO BINARY ====================
+// CSV TO BINARY 
+// r = reading csv wb= writing to binary
 void csvToBinary(const char *inputFile, const char *outputFile, char separator) {
-    FILE *fp = fopen(inputFile, "r");
-    if (fp == NULL) { printf("CSV dosyası açılamadı!\n"); return; }
+    FILE *csvFile = fopen(inputFile, "r");
+    if (csvFile == NULL) { 
+        printf("CSV dosyası açılamadı!\n"); 
+        return; 
+    }
 
-    FILE *bin = fopen(outputFile, "wb");
-    if (bin == NULL) { printf("Binary dosya açılamadı!\n"); return; }
+    FILE *binaryFile = fopen(outputFile, "wb");
+    if (binaryFile == NULL) { 
+        printf("Binary dosya açılamadı!\n"); 
+        return; 
+    }
 
     char satir[512];
     
-    // Header satırını atla
-    fgets(satir, sizeof(satir), fp);
+    // Header line jump
+    // memset = reseting memory and pointers
+    // atof= converting to float from string  atoi = converting to integer form string
+    fgets(satir, sizeof(satir), csvFile);
 
-    while (fgets(satir, sizeof(satir), fp) != NULL) {
+    while (fgets(satir, sizeof(satir), csvFile) != NULL) {
         satir[strcspn(satir, "\n\r")] = 0;
         if (strlen(satir) == 0) continue;
 
@@ -81,18 +91,22 @@ void csvToBinary(const char *inputFile, const char *outputFile, char separator) 
         if (fieldCount > 8 && strlen(fields[8]) > 0) strcpy(p.app_ver, fields[8]);
         if (fieldCount > 9 && strlen(fields[9]) > 0) strcpy(p.passenger_name, fields[9]);
 
-        fwrite(&p, sizeof(struct Passenger), 1, bin);
+        fwrite(&p, sizeof(struct Passenger), 1, binaryFile);
     }
 
-    fclose(fp);
-    fclose(bin);
+    fclose(csvFile);
+    fclose(binaryFile);
     printf("CSV → Binary dönüşümü tamamlandı!\n");
 }
 
-// ==================== BINARY TO XML ====================
+// BINARY TO XML 
+// rb = read binary
 void binaryToXML(const char *inputFile, const char *outputFile) {
-    FILE *bin = fopen(inputFile, "rb");
-    if (bin == NULL) { printf("Binary dosya açılamadı!\n"); return; }
+    FILE *binaryFile = fopen(inputFile, "rb");
+    if (binaryFile == NULL) { 
+        printf("Binary dosya açılamadı!\n"); 
+        return; 
+    }
 
     xmlDocPtr doc = xmlNewDoc(BAD_CAST "1.0");
     xmlNodePtr root = xmlNewNode(NULL, BAD_CAST "flightlogs");
@@ -100,12 +114,12 @@ void binaryToXML(const char *inputFile, const char *outputFile) {
 
     struct Passenger p;
     int id = 1;
-    char buf[64];
+    char buffer[64];
 
-    while (fread(&p, sizeof(struct Passenger), 1, bin) == 1) {
+    while (fread(&p, sizeof(struct Passenger), 1, binaryFile) == 1) {
         xmlNodePtr entry = xmlNewChild(root, NULL, BAD_CAST "entry", NULL);
-        sprintf(buf, "%d", id++);
-        xmlNewProp(entry, BAD_CAST "id", BAD_CAST buf);
+        sprintf(buffer, "%d", id++);
+        xmlNewProp(entry, BAD_CAST "id", BAD_CAST buffer);
 
         xmlNodePtr ticket = xmlNewChild(entry, NULL, BAD_CAST "ticket", NULL);
         xmlNewChild(ticket, NULL, BAD_CAST "ticket_id", BAD_CAST p.ticket_id);
@@ -116,12 +130,12 @@ void binaryToXML(const char *inputFile, const char *outputFile) {
         xmlNewProp(metrics, BAD_CAST "status", BAD_CAST p.status);
         xmlNewProp(metrics, BAD_CAST "cabin_class", BAD_CAST p.cabin_class);
 
-        sprintf(buf, "%.1f", p.baggage_weight);
-        xmlNewChild(metrics, NULL, BAD_CAST "baggage_weight", BAD_CAST buf);
-        sprintf(buf, "%d", p.loyalty_points);
-        xmlNewChild(metrics, NULL, BAD_CAST "loyalty_points", BAD_CAST buf);
-        sprintf(buf, "%d", p.seat_num);
-        xmlNewChild(metrics, NULL, BAD_CAST "seat_num", BAD_CAST buf);
+        sprintf(buffer, "%.1f", p.baggage_weight);
+        xmlNewChild(metrics, NULL, BAD_CAST "baggage_weight", BAD_CAST buffer);
+        sprintf(buffer, "%d", p.loyalty_points);
+        xmlNewChild(metrics, NULL, BAD_CAST "loyalty_points", BAD_CAST buffer);
+        sprintf(buffer, "%d", p.seat_num);
+        xmlNewChild(metrics, NULL, BAD_CAST "seat_num", BAD_CAST buffer);
 
         xmlNewChild(entry, NULL, BAD_CAST "timestamp", BAD_CAST p.timestamp);
 
@@ -135,23 +149,23 @@ void binaryToXML(const char *inputFile, const char *outputFile) {
         xmlNewProp(pname, BAD_CAST "first_char_hex", BAD_CAST hexBuf);
     }
 
-    fclose(bin);
+    fclose(binaryFile);
     xmlSaveFormatFileEnc(outputFile, doc, "UTF-8", 1);
     xmlFreeDoc(doc);
     xmlCleanupParser();
     printf("Binary → XML dönüşümü tamamlandı!\n");
 }
 
-// ==================== XSD VALIDATION ====================
+// XSD VALIDATION 
 void validateXML(const char *xmlFile, const char *xsdFile) {
     xmlDocPtr doc;
     xmlSchemaPtr schema = NULL;
-    xmlSchemaParserCtxtPtr ctxt;
+    xmlSchemaParserCtxtPtr c_txt;
 
     xmlLineNumbersDefault(1);
-    ctxt = xmlSchemaNewParserCtxt(xsdFile);
-    schema = xmlSchemaParse(ctxt);
-    xmlSchemaFreeParserCtxt(ctxt);
+    c_txt = xmlSchemaNewParserCtxt(xsdFile);
+    schema = xmlSchemaParse(c_txt);
+    xmlSchemaFreeParserCtxt(c_txt);
 
     doc = xmlReadFile(xmlFile, NULL, 0);
     if (doc == NULL) {
@@ -159,21 +173,21 @@ void validateXML(const char *xmlFile, const char *xsdFile) {
         return;
     }
 
-    xmlSchemaValidCtxtPtr vctxt = xmlSchemaNewValidCtxt(schema);
-    int ret = xmlSchemaValidateDoc(vctxt, doc);
+    xmlSchemaValidCtxtPtr vc_txt = xmlSchemaNewValidCtxt(schema);
+    int result = xmlSchemaValidateDoc(vc_txt, doc);
 
-    if (ret == 0) printf("%s validates\n", xmlFile);
-    else if (ret > 0) printf("%s fails to validate\n", xmlFile);
+    if (result == 0) printf("%s validates\n", xmlFile);
+    else if (result > 0) printf("%s fails to validate\n", xmlFile);
     else printf("Internal error\n");
 
-    xmlSchemaFreeValidCtxt(vctxt);
+    xmlSchemaFreeValidCtxt(vc_txt);
     xmlFreeDoc(doc);
     if (schema != NULL) xmlSchemaFree(schema);
     xmlSchemaCleanupTypes();
     xmlCleanupParser();
 }
 
-// ==================== ENCODING CONVERSION ====================
+// ENCODING CONVERSION 
 void convertEncoding(const char *inputFile, const char *outputFile, int encoding) {
     xmlDocPtr doc = xmlReadFile(inputFile, NULL, 0);
     if (doc == NULL) { printf("Dosya okunamadı!\n"); return; }
@@ -246,7 +260,7 @@ void convertEncoding(const char *inputFile, const char *outputFile, int encoding
     printf("%s dönüşümü tamamlandı!\n", encName);
 }
 
-// ==================== HELP ====================
+// HELP 
 void printHelp() {
     printf("Usage: ./flightTool <input> <output> <conversion_type> -separator <1|2|3> -opsys <1|2|3> [-encoding <1|2|3>]\n");
     printf("conversion_type: 1=CSV->Binary, 2=Binary->XML, 3=XSD Validation, 4=Encoding\n");
@@ -255,7 +269,7 @@ void printHelp() {
     printf("-encoding: 1=UTF-16LE, 2=UTF-16BE, 3=UTF-8\n");
 }
 
-// ==================== MAIN ====================
+// MAIN
 int main(int argc, char *argv[]) {
     if (argc < 2) { printHelp(); return 1; }
 
@@ -284,12 +298,17 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    switch (convType) {
-        case 1: csvToBinary(inputFile, outputFile, separator); break;
-        case 2: binaryToXML(inputFile, outputFile); break;
-        case 3: validateXML(inputFile, outputFile); break;
-        case 4: convertEncoding(inputFile, outputFile, encoding); break;
-        default: printf("Geçersiz conversion type!\n"); printHelp();
+    if (convType == 1) {
+       csvToBinary(inputFile, outputFile, separator);
+    } else if (convType == 2) {
+       binaryToXML(inputFile, outputFile);
+    } else if (convType == 3) {
+       validateXML(inputFile, outputFile);
+    } else if (convType == 4) {
+       convertEncoding(inputFile, outputFile, encoding);
+    } else {
+       printf("Geçersiz conversion type!\n");
+       printHelp();
     }
 
     return 0;
