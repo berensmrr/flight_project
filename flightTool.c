@@ -41,13 +41,13 @@ void getFirstCharHex(const char *str, char *hexOut) {
 void csvToBinary(const char *inputFile, const char *outputFile, char separator) {
     FILE *csvFile = fopen(inputFile, "r");
     if (csvFile == NULL) { 
-        printf("CSV dosyası açılamadı!\n"); 
+        printf("CSV file can't open!\n"); 
         return; 
     }
 
     FILE *binaryFile = fopen(outputFile, "wb");
     if (binaryFile == NULL) { 
-        printf("Binary dosya açılamadı!\n"); 
+        printf("Binary file can't open!\n"); 
         return; 
     }
 
@@ -96,7 +96,7 @@ void csvToBinary(const char *inputFile, const char *outputFile, char separator) 
 
     fclose(csvFile);
     fclose(binaryFile);
-    printf("CSV → Binary dönüşümü tamamlandı!\n");
+    printf("CSV → Binary conversion completed!\n");
 }
 
 // BINARY TO XML 
@@ -104,7 +104,7 @@ void csvToBinary(const char *inputFile, const char *outputFile, char separator) 
 void binaryToXML(const char *inputFile, const char *outputFile) {
     FILE *binaryFile = fopen(inputFile, "rb");
     if (binaryFile == NULL) { 
-        printf("Binary dosya açılamadı!\n"); 
+        printf("Binary file can't open!\n"); 
         return; 
     }
 
@@ -139,11 +139,11 @@ void binaryToXML(const char *inputFile, const char *outputFile) {
 
         xmlNewChild(entry, NULL, BAD_CAST "timestamp", BAD_CAST p.timestamp);
 
-        // first_char_hex hesapla
+        // first_char_hex calculation
         char hexBuf[16];
         getFirstCharHex(p.passenger_name, hexBuf);
 
-        // passenger_name node oluştur
+        // passenger_name node created
         xmlNodePtr pname = xmlNewChild(entry, NULL, BAD_CAST "passenger_name", BAD_CAST p.passenger_name);
         xmlNewProp(pname, BAD_CAST "current_encoding", BAD_CAST "UTF-8");
         xmlNewProp(pname, BAD_CAST "first_char_hex", BAD_CAST hexBuf);
@@ -153,7 +153,7 @@ void binaryToXML(const char *inputFile, const char *outputFile) {
     xmlSaveFormatFileEnc(outputFile, doc, "UTF-8", 1);
     xmlFreeDoc(doc);
     xmlCleanupParser();
-    printf("Binary → XML dönüşümü tamamlandı!\n");
+    printf("Binary → XML conversion completed!\n");
 }
 
 // XSD VALIDATION 
@@ -190,15 +190,15 @@ void validateXML(const char *xmlFile, const char *xsdFile) {
 // ENCODING CONVERSION 
 void convertEncoding(const char *inputFile, const char *outputFile, int encoding) {
     xmlDocPtr doc = xmlReadFile(inputFile, NULL, 0);
-    if (doc == NULL) { printf("Dosya okunamadı!\n"); return; }
+    if (doc == NULL) { printf("File cant reading!\n"); return; }
 
     const char *encName;
     if (encoding == 1) encName = "UTF-16LE";
     else if (encoding == 2) encName = "UTF-16BE";
     else if (encoding == 3) encName = "UTF-8";
-    else { printf("Geçersiz encoding!\n"); return; }
+    else { printf("Invalide encoding!\n"); return; }
 
-    // passenger_name attribute'larını güncelle
+    // passenger_name attributes upgrade
     xmlNodePtr root = xmlDocGetRootElement(doc);
     xmlNodePtr entry = root->children;
 
@@ -209,17 +209,17 @@ void convertEncoding(const char *inputFile, const char *outputFile, int encoding
                 if (child->type == XML_ELEMENT_NODE &&
                     xmlStrcmp(child->name, BAD_CAST "passenger_name") == 0) {
 
-                    // current_encoding güncelle
+                    // current_encoding upgrade
                     xmlSetProp(child, BAD_CAST "current_encoding", BAD_CAST encName);
 
-                    // first_char_hex güncelle
+                    // first_char_hex upgrade
                     xmlChar *content = xmlNodeGetContent(child);
                     if (content != NULL && xmlStrlen(content) > 0) {
                         char hexBuf[16];
                         unsigned char *s = (unsigned char *)content;
 
                         if (encoding == 1) {
-                            // UTF-16LE: byte sırası ters
+                            // UTF-16LE: reverse byte
                             if (s[0] < 0x80) {
                                 sprintf(hexBuf, "%02X00", s[0]);
                             } else if (s[0] < 0xE0) {
@@ -230,7 +230,7 @@ void convertEncoding(const char *inputFile, const char *outputFile, int encoding
                                 sprintf(hexBuf, "0000");
                             }
                         } else if (encoding == 2) {
-                            // UTF-16BE: normal sıra
+                            // UTF-16BE: normal byte
                             if (s[0] < 0x80) {
                                 sprintf(hexBuf, "00%02X", s[0]);
                             } else if (s[0] < 0xE0) {
@@ -257,7 +257,7 @@ void convertEncoding(const char *inputFile, const char *outputFile, int encoding
     xmlSaveFormatFileEnc(outputFile, doc, encName, 1);
     xmlFreeDoc(doc);
     xmlCleanupParser();
-    printf("%s dönüşümü tamamlandı!\n", encName);
+    printf("%s conversion completed!\n", encName);
 }
 
 // HELP 
@@ -275,7 +275,7 @@ int main(int argc, char *argv[]) {
 
     if (strcmp(argv[1], "-h") == 0) { printHelp(); return 0; }
 
-    if (argc < 4) { printf("Eksik argüman!\n"); printHelp(); return 1; }
+    if (argc < 4) { printf("Incompleted argument!\n"); printHelp(); return 1; }
 
     char *inputFile  = argv[1];
     char *outputFile = argv[2];
@@ -307,7 +307,7 @@ int main(int argc, char *argv[]) {
     } else if (convType == 4) {
        convertEncoding(inputFile, outputFile, encoding);
     } else {
-       printf("Geçersiz conversion type!\n");
+       printf("Unvalide conversion type!\n");
        printHelp();
     }
 

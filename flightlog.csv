@@ -1,6 +1,6 @@
 ticket_id,timestamp,baggage_weight,loyalty_points,status,destination,cabin_class,seat_num,app_ver,passanger_name
 THY1001,2025-03-01T08:10:00,15.4,,🟢,London Heathrow,ECONOMY,11,v1.0.0,Ahmet Yılmaz
-PEG1002,,850,⚠️,Berlin Brandenburg,BUSINESS,12,v1.0.1,Elif Şahin
+PEG1002,,,850,⚠️,Berlin Brandenburg,BUSINESS,12,v1.0.1,Elif Şahin
 SUN1003,2025-03-01T10:30:20,8.3,320,🟢,Paris Charles de Gaulle,ECONOMY,13,v1.1.0,Mehmet Öztürk
 THY1004,2025-03-01T11:40:30,22.0,5400,🟢,Amsterdam Schiphol,FIRST,4,,Ayşe Kaya
 AJT1005,2025-03-01T12:50:40,10.5,600,🔴,Madrid Barajas,ECONOMY,15,v1.0.2,Hakan Demir
@@ -16,7 +16,7 @@ THY1014,2025-03-02T11:35:30,9.8,500,🟢,Athens Airport,ECONOMY,24,v1.0.5,Serkan
 AJT1015,2025-03-02T12:45:40,6.3,210,🔴,Budapest Airport,ECONOMY,25,v1.0.6,İrem Şen
 THY1016,2025-03-02T13:55:50,25.5,7600,🟢,Toronto Pearson,BUSINESS,26,v2.0.2,Volkan Işık
 PEG1017,2025-03-02T14:06:00,18.9,3000,⚠️,Copenhagen Airport,BUSINESS,27,v2.1.0,Alper Yıldız
-SUN1018,2025-03-02T15:16:10,11.4,640,🟢,,28,v1.3.1,Melis Çınar
+SUN1018,2025-03-02T15:16:10,11.4,640,🟢,,,28,v1.3.1,Melis Çınar
 THY1019,2025-03-02T16:26:20,28.1,9000,🟢,Singapore Changi,FIRST,2,v3.0.0,Kaan Çelik
 AJT1020,2025-03-02T17:36:30,13.7,1500,🔴,Seoul Incheon,ECONOMY,30,v1.0.7,Tuğba Aydın
 THY1021,2025-03-03T08:10:00,17.4,1400,🟢,Lisbon Airport,ECONOMY,31,v1.0.8,Eren Yalçın
